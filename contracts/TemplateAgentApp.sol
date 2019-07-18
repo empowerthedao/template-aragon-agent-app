@@ -25,7 +25,7 @@ contract TemplateAgentApp is AragonApp {
     }
 
     /**
-    * @notice Update the Agent address to `_address`
+    * @notice Update the Agent address to `_agent`
     * @param _agent New Agent address
     */
     function setAgent(address _agent) external auth(SET_AGENT_ROLE) {
