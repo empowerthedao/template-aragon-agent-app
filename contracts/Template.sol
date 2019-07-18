@@ -19,8 +19,9 @@ import "@aragon/os/contracts/apm/APMNamehash.sol";
 import "@aragon/apps-voting/contracts/Voting.sol";
 import "@aragon/apps-token-manager/contracts/TokenManager.sol";
 import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
+import "@aragon/apps-agent/contracts/Agent.sol";
 
-import "./CounterApp.sol";
+import "./TemplateAgentApp.sol";
 
 
 contract TemplateBase is APMNamehash {
@@ -70,27 +71,34 @@ contract Template is TemplateBase {
         bytes32 appId = keccak256(abi.encodePacked(apmNamehash("open"), keccak256("agent-template")));
         bytes32 votingAppId = apmNamehash("voting");
         bytes32 tokenManagerAppId = apmNamehash("token-manager");
+        bytes32 agentAppId = apmNamehash("agent");
 
-        CounterApp app = CounterApp(dao.newAppInstance(appId, latestVersionAppBase(appId)));
+        TemplateAgentApp app = TemplateAgentApp(dao.newAppInstance(appId, latestVersionAppBase(appId)));
         Voting voting = Voting(dao.newAppInstance(votingAppId, latestVersionAppBase(votingAppId)));
         TokenManager tokenManager = TokenManager(dao.newAppInstance(tokenManagerAppId, latestVersionAppBase(tokenManagerAppId)));
+        Agent agent = Agent(dao.newAppInstance(agentAppId, latestVersionAppBase(agentAppId)));
 
         MiniMeToken token = tokenFactory.createCloneToken(MiniMeToken(0), 0, "App token", 0, "APP", true);
         token.changeController(tokenManager);
 
-        app.initialize();
-        tokenManager.initialize(token, true, 0);
         // Initialize apps
+        app.initialize(address(agent));
+        tokenManager.initialize(token, true, 0);
         voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
+        agent.initialize();
+
+        // Create apps permissions
+        acl.createPermission(ANY_ENTITY, app, app.SET_AGENT_ROLE(), root);
 
         acl.createPermission(this, tokenManager, tokenManager.MINT_ROLE(), this);
+        acl.grantPermission(voting, tokenManager, tokenManager.MINT_ROLE());
         tokenManager.mint(root, 1); // Give one token to root
 
         acl.createPermission(ANY_ENTITY, voting, voting.CREATE_VOTES_ROLE(), root);
 
-        acl.createPermission(voting, app, app.INCREMENT_ROLE(), voting);
-        acl.createPermission(ANY_ENTITY, app, app.DECREMENT_ROLE(), root);
-        acl.grantPermission(voting, tokenManager, tokenManager.MINT_ROLE());
+        acl.createPermission(address(app), agent, agent.EXECUTE_ROLE(), root);
+        acl.createPermission(address(app), agent, agent.RUN_SCRIPT_ROLE(), root);
+        acl.createPermission(address(app), agent, agent.TRANSFER_ROLE(), root);
 
         // Clean up permissions
         acl.grantPermission(root, dao, dao.APP_MANAGER_ROLE());

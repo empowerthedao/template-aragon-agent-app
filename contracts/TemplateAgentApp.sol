@@ -1,10 +1,37 @@
-pragma solidity ^0.5.1;
+pragma solidity ^0.4.24;
 
+import "@aragon/os/contracts/apps/AragonApp.sol";
+import "@aragon/apps-agent/contracts/Agent.sol";
 
+contract TemplateAgentApp is AragonApp {
 
-contract TemplateAgentApp {
+    bytes32 public constant SET_AGENT_ROLE = keccak256("SET_AGENT_ROLE");
 
-    constructor() public {
+    Agent public agent;
 
+    event AppInitialized();
+    event NewAgentSet(address agent);
+
+    /**
+    * @notice Initialize the ???? App
+    * @param _agent The Agent contract address
+    */
+    function initialize(address _agent) public {
+        initialized();
+
+        agent = Agent(_agent);
+
+        emit AppInitialized();
     }
+
+    /**
+    * @notice Update the Agent address to `_address`
+    * @param _agent New Agent address
+    */
+    function setAgent(address _agent) external auth(SET_AGENT_ROLE) {
+        agent = Agent(_agent);
+        emit NewAgentSet(_agent);
+    }
+
+
 }
