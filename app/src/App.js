@@ -1,7 +1,6 @@
 import React, {useState} from 'react'
-import {useAragonApi} from '@aragon/api-react'
-import {Main, TabBar, SidePanel} from '@aragon/ui'
-import styled from 'styled-components'
+import {useApi, useAppState} from '@aragon/api-react'
+import {Main, TabBar, SidePanel, SyncIndicator} from '@aragon/ui'
 
 import {setAgent} from "./web3/TemplateAgentContract";
 
@@ -10,14 +9,14 @@ import Settings from "./components/settings/Settings"
 import Content from "./components/Content";
 import GenericInputPanel from "./components/side-panel-input/GenericInputPanel";
 
-// TODO: Extract common views into independant components.
 // TODO: Put thought into extracting tabs and or side panel components, requires recreating or passing in aragon api instance.
-// TODO: Investigate and use the syncing state.
 
 function App() {
 
-    const {api, appState} = useAragonApi()
-    const {syncing} = appState
+    const api = useApi()
+    const appState = useAppState()
+
+    const {isSyncing} = appState
     const [tabBarSelected, setTabBarSelected] = useState(0)
     const [sidePanel, setSidePanel] = useState(undefined)
 
@@ -64,32 +63,28 @@ function App() {
     const selectedTabComponent = tabs[tabBarSelected].tabComponent
 
     return (
-        <Main>
+        <div css="min-width: 320px">
+            <Main>
+                <SyncIndicator visible={isSyncing}/>
+                <AppLayout title='Template Agent'
+                           tabs={(<TabBar
+                               items={tabsNames}
+                               selected={tabBarSelected}
+                               onChange={setTabBarSelected}/>)}>
 
-            <AppLayout title='Template Agent'
-                       tabs={(<TabBar
-                           items={tabsNames}
-                           selected={tabBarSelected}
-                           onChange={setTabBarSelected}/>)}>
+                    {selectedTabComponent}
 
-                {selectedTabComponent}
+                </AppLayout>
 
-            </AppLayout>
-
-            <SidePanel title={sidePanel ? sidePanel.title : ''} opened={sidePanel !== undefined}
-                       onClose={() => closeSidePanel()}>
-                {sidePanel ? sidePanel.sidePanelComponent : <div/>}
-            </SidePanel>
-        </Main>
-
-
+                <SidePanel title={sidePanel ? sidePanel.title : ''}
+                           opened={sidePanel !== undefined}
+                           onClose={() => closeSidePanel()}
+                >
+                    {sidePanel ? sidePanel.sidePanelComponent : <div/>}
+                </SidePanel>
+            </Main>
+        </div>
     )
 }
-
-const Syncing = styled.div.attrs({children: 'Syncing…'})`
-  position: absolute;
-  top: 15px;
-  right: 20px;
-`
 
 export default App

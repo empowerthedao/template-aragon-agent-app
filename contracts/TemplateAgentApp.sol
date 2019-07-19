@@ -33,5 +33,4 @@ contract TemplateAgentApp is AragonApp {
         emit NewAgentSet(_agent);
     }
 
-
 }
