@@ -12,8 +12,6 @@ const SettingsContainer = styled.div`
 const Settings = ({handleNewAgent, appState}) => {
     const {appAddress, agentAddress} = appState
 
-    console.log(agentAddress)
-
     return (
         <SettingsContainer>
             <div>
@@ -22,7 +20,7 @@ const Settings = ({handleNewAgent, appState}) => {
                                        buttonLabel="Change Agent"
                                        buttonOnClick={handleNewAgent}/>
 
-                <DetailContainer label="Template Agent Address"
+                <DetailContainer label="Aragon App Address"
                                  detail={appAddress}/>
             </div>
 
