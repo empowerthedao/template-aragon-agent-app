@@ -2,12 +2,10 @@ import React, {useState} from 'react'
 import {useApi, useAppState} from '@aragon/api-react'
 import {Main, TabBar, SidePanel, SyncIndicator} from '@aragon/ui'
 
-import {setAgent} from "./web3/TemplateAgentContract";
-
 import AppLayout from "./components/app-layout/AppLayout"
 import Settings from "./components/settings/Settings"
 import Content from "./components/Content";
-import GenericInputPanel from "./components/side-panel-input/GenericInputPanel";
+import {useSidePanels} from "./app-side-panels";
 
 // TODO: Put thought into extracting tabs and or side panel components, requires recreating or passing in aragon api instance.
 
@@ -18,29 +16,12 @@ function App() {
 
     const {isSyncing} = appState
     const [tabBarSelected, setTabBarSelected] = useState(0)
-    const [sidePanel, setSidePanel] = useState(undefined)
 
-    const setAgentAddress = (address) => {
-        closeSidePanel()
-        setAgent(api, address)
-    }
-
-    const closeSidePanel = () => setSidePanel(undefined)
-
-    const sidePanels = {
-        CHANGE_AGENT: {
-            title: 'Change the Agent',
-            sidePanelComponent: (
-                <GenericInputPanel actionTitle={'Template Agent Action'}
-                                   actionDescription={`This action will change the Agent which represents an EOA and is responsible
-                                    for interacting with the ??? protocol.`}
-                                   inputFieldList={[
-                                       {id: 1, label: 'address', type: 'text'}]}
-                                   submitLabel={'Change agent'}
-                                   handleSubmit={setAgentAddress}/>
-            )
-        }
-    }
+    const {
+        openSidePanel,
+        openSidePanelActions,
+        closeSidePanel
+    } = useSidePanels(api)
 
     const tabs = [
         {
@@ -53,7 +34,7 @@ function App() {
             tabName: 'Settings',
             tabComponent: (
                 <Settings appState={appState}
-                          handleNewAgent={() => setSidePanel(sidePanels.CHANGE_AGENT)}
+                          handleNewAgent={() => openSidePanelActions.changeAgent()}
                 />
             )
         }
@@ -76,11 +57,11 @@ function App() {
 
                 </AppLayout>
 
-                <SidePanel title={sidePanel ? sidePanel.title : ''}
-                           opened={sidePanel !== undefined}
+                <SidePanel title={openSidePanel ? openSidePanel.title : ''}
+                           opened={openSidePanel !== undefined}
                            onClose={() => closeSidePanel()}
                 >
-                    {sidePanel ? sidePanel.sidePanelComponent : <div/>}
+                    {openSidePanel ? openSidePanel.sidePanelComponent : <div/>}
                 </SidePanel>
             </Main>
         </div>
