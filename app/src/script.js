@@ -6,8 +6,6 @@ import {agentAddress$} from "./web3/ExternalContracts";
 const DEBUG = true; // set to false to disable debug messages.
 const debugLog = message => { if (DEBUG) { console.log(message) }}
 
-const INITIALIZATION_TRIGGER = Symbol('INITIALIZATION_TRIGGER')
-
 const api = new Aragon()
 
 // Wait until we can get the agents address (demonstrating we are connected to the app) before initializing the store.
@@ -48,9 +46,6 @@ const onNewEvent = async (state, storeEvent) => {
     const {event: eventName, address: eventAddress} = storeEvent
 
     switch (eventName) {
-        case INITIALIZATION_TRIGGER:
-            debugLog("APP INITIALISED")
-            return await initialState(state)
         case events.SYNC_STATUS_SYNCING:
             debugLog("APP SYNCING")
             return {
@@ -66,10 +61,6 @@ const onNewEvent = async (state, storeEvent) => {
         case 'AppInitialized':
             debugLog("APP CONSTRUCTOR EVENT")
             api.identify(`Agent App: ${eventAddress}`)
-
-            console.log(state)
-            console.log({...state, appAddress: eventAddress})
-
             return {
                 ...state,
                 appAddress: eventAddress
@@ -85,3 +76,8 @@ const onNewEvent = async (state, storeEvent) => {
     }
 }
 
+const onErrorReturnDefault = (errorContext, defaultReturnValue) =>
+    catchError(error => {
+        console.error(`Error fetching ${errorContext}: ${error}`)
+        return of(defaultReturnValue)
+    })

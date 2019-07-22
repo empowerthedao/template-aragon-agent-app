@@ -7,8 +7,6 @@ import Settings from "./components/settings/Settings"
 import Content from "./components/Content";
 import {useSidePanels} from "./app-side-panels";
 
-// TODO: Put thought into extracting tabs and or side panel components, requires recreating or passing in aragon api instance.
-
 function App() {
 
     const api = useApi()
